@@ -64,10 +64,20 @@ class Dictionary:
             if self.table[index].key == key:
                 self.table[index] = None
                 self.size -= 1
+                self._rehash_after_deletion(index)
                 return
             index = (index + 1) % self.capacity
 
         raise KeyError(f"Key '{key}' not found")
+
+    def _rehash_after_deletion(self, deleted_index: int) -> None:
+        current_index = (deleted_index + 1) % self.capacity
+        while self.table[current_index] is not None:
+            node = self.table[current_index]
+            self.table[current_index] = None
+            self.size -= 1
+            self[node.key] = node.value
+            current_index = (current_index + 1) % self.capacity
 
     def get(self, key: any, default: any = None) -> any:
         try:
@@ -96,7 +106,7 @@ class Dictionary:
     def __iter__(self) -> object:
         for node in self.table:
             if node is not None:
-                yield node.key
+                yield (node.key, node.value)
 
     def __contains__(self, key: any) -> bool:
         try:
